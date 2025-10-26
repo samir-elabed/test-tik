@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Stream Recorder - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .demo-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 6px;
+            border-radius: 3px;
+            margin: 30px 0 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 3px;
+        }
+
+        .step-indicator {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .slide {
+            display: none;
+            background: white;
+            color: #333;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-height: 500px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide h2 {
+            color: #667eea;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+        }
+
+        .slide p {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .demo-interface {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            min-height: 400px;
+        }
+
+        .interface-window {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .window-header {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .window-dot.red { background: #ff5f57; }
+        .window-dot.yellow { background: #ffbd2e; }
+        .window-dot.green { background: #28ca42; }
+
+        .window-content {
+            padding: 30px;
+            color: #333;
+        }
+
+        .mock-header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mock-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .mock-stat {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .mock-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mock-input input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .mock-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .mock-user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 25px;
+            margin: 5px;
+            animation: chipAppear 0.3s ease;
+        }
+
+        @keyframes chipAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .mock-stream-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .mock-stream-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            animation: cardAppear 0.5s ease;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mock-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+
+        .mock-stream-info {
+            padding: 15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .control-btn.prev {
+            background: #6c757d;
+            color: white;
+        }
+
+        .control-btn.next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .telegram-preview {
+            background: #0088cc;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .telegram-message {
+            background: white;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .recording-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #ff4757;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .tip-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .demo-header h1 {
+                font-size: 2em;
+            }
+            
+            .slide {
+                padding: 20px;
+            }
+            
+            .mock-stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🎥 TikTok Stream Recorder</h1>
+            <p>Interactive Demo & Walkthrough</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="step-indicator">
+                <span id="currentStep">1</span> of <span id="totalSteps">10</span>
+            </div>
+        </div>
+
+        <!-- Slide 1: Welcome -->
+        <div class="slide active" data-step="1">
+            <h2>👋 Welcome to TikTok Stream Recorder!</h2>
+            <p>This interactive demo will show you exactly how the system works, step by step.</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Auto-Detection</h3>
+                    <p>Automatically detects when monitored users go live</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📹</div>
+                    <h3>Auto-Recording</h3>
+                    <p>Records streams automatically with no manual intervention</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🖼️</div>
+                    <h3>Thumbnails</h3>
+                    <p>Generates video thumbnails for easy browsing</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <h3>Telegram Upload</h3>
+                    <p>Automatically uploads to your Telegram channel</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Web Dashboard</h3>
+                    <p>Beautiful interface to manage everything</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">💾</div>
+                    <h3>Local Storage</h3>
+                    <p>All videos saved locally on your computer</p>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✨ What You'll Learn:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>How to start the system</li>
+                    <li>How to add users to monitor</li>
+                    <li>How recording works automatically</li>
+                    <li>How to view and manage recordings</li>
+                    <li>How Telegram integration works</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn next" onclick="nextSlide()">Start Demo →</button>
+            </div>
+        </div>
+
+        <!-- Slide 2: Starting the System -->
+        <div class="slide" data-step="2">
+            <h2>🚀 Step 1: Starting the System</h2>
+            <p>First, you need to start the backend and frontend services. There are three easy ways:</p>
+
+            <h3 style="margin-top: 30px;">Option 1: Windows (Easiest)</h3>
+            <div class="code-block">
+                # Simply double-click: start.bat
+            </div>
+            <p>Three windows will open automatically!</p>
+
+            <h3 style="margin-top: 30px;">Option 2: Linux/Mac</h3>
+            <div class="code-block">
+                cd tiktok-stream-recorder<br>
+                ./start.sh
+            </div>
+
+            <h3 style="margin-top: 30px;">Option 3: Docker</h3>
+            <div class="code-block">
+                cd tiktok-stream-recorder<br>
+                docker-compose up -d
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Pro Tip:</strong> Wait 10-30 seconds after starting for all services to initialize properly.
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 3: Opening the Interface -->
+        <div class="slide" data-step="3">
+            <h2>🌐 Step 2: Opening the Web Interface</h2>
+            <p>Once the services are running, open your browser and navigate to:</p>
+
+            <div class="code-block">
+                http://localhost:8080
+            </div>
+
+            <div class="demo-interface">
+                <div class="interface-window">
+                    <div class="window-header">
+                        <div class="window-dot red"></div>
+                        <div class="window-dot yellow"></div>
+                        <div class="window-dot green"></div>
+                        <span style="margin-left: 10px; font-size: 0.9em; color: #666;">localhost:8080</span>
+                    </div>
+                    <div class="window-content">
+                        <div class="mock-header">
+                            <h1 style="font-size: 2.5em; margin-bottom: 10px;">🎥 TikTok Stream Recorder</h1>
+                            <p style="opacity: 0.9;">Monitor and record live streams automatically</p>
+                            <div class="mock-stats">
+                                <div class="mock-stat">
+                                    <div class="stat-number">0</div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Monitored Users</div>
+                                </div>
+                                <div class="mock-stat">
+                                    <div class="stat-number">0</div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Total Streams</div>
+                                </div>
+                                <div class="mock-stat">
+                                    <div class="stat-number">0</div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Currently Recording</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ You should see:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Purple gradient background</li>
+                    <li>TikTok Stream Recorder header</li>
+                    <li>Statistics showing 0/0/0</li>
+                    <li>Input field below</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 4: Adding Users -->
+        <div class="slide" data-step="4">
+            <h2>👥 Step 3: Adding Users to Monitor</h2>
+            <p>Now let's add some TikTok users you want to monitor. When they go live, the system will automatically record!</p>
+
+            <div class="demo-interface">
+                <div class="interface-window">
+                    <div class="window-header">
+                        <div class="window-dot red"></div>
+                        <div class="window-dot yellow"></div>
+                        <div class="window-dot green"></div>
+                    </div>
+                    <div class="window-content">
+                        <h2 style="color: #333; margin-bottom: 20px;">Add Users to Monitor</h2>
+                        <div class="mock-input">
+                            <input type="text" placeholder="Enter TikTok username (without @)" value="charlidamelio">
+                            <button class="mock-button" onclick="addMockUser()">Add User</button>
+                        </div>
+                        <div id="mockUserList" style="margin-top: 20px;">
+                            <!-- Users will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Important:</strong> Enter the username <span class="highlight">WITHOUT the @ symbol</span>
+                <br><br>
+                <strong>Example:</strong><br>
+                ❌ @charlidamelio<br>
+                ✅ charlidamelio
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 5: Monitoring Process -->
+        <div class="slide" data-step="5">
+            <h2>🔍 Step 4: The Monitoring Process</h2>
+            <p>Once you've added users, the system automatically starts monitoring them. Here's what happens behind the scenes:</p>
+
+            <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 30px 0;">
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; margin-right: 20px;">1</div>
+                    <div>
+                        <h3 style="color: #667eea;">Check Every 60 Seconds</h3>
+                        <p style="color: #666; margin-top: 5px;">System checks if monitored users are live</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; margin-right: 20px;">2</div>
+                    <div>
+                        <h3 style="color: #667eea;">Detect Live Stream</h3>
+                        <p style="color: #666; margin-top: 5px;">When user goes live, detection happens instantly</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; margin-right: 20px;">3</div>
+                    <div>
+                        <h3 style="color: #667eea;"><span class="recording-indicator"></span>Start Recording</h3>
+                        <p style="color: #666; margin-top: 5px;">Recording begins automatically using yt-dlp</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; margin-right: 20px;">4</div>
+                    <div>
+                        <h3 style="color: #667eea;">Save & Process</h3>
+                        <p style="color: #666; margin-top: 5px;">Video saved, thumbnail generated</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; margin: 20px 0;">
+                    <div style="width: 50px; height: 50px; background: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; margin-right: 20px;">5</div>
+                    <div>
+                        <h3 style="color: #667eea;">Upload to Telegram</h3>
+                        <p style="color: #666; margin-top: 5px;">(Optional) Automatically posts to your channel</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✨ Completely Automatic!</strong> You don't need to do anything. Just add users and the system handles everything else.
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 6: Recording in Progress -->
+        <div class="slide" data-step="6">
+            <h2>📹 Step 5: When Recording Starts</h2>
+            <p>When a monitored user goes live, you'll see the recording status update in real-time!</p>
+
+            <div class="demo-interface">
+                <div class="interface-window">
+                    <div class="window-header">
+                        <div class="window-dot red"></div>
+                        <div class="window-dot yellow"></div>
+                        <div class="window-dot green"></div>
+                    </div>
+                    <div class="window-content">
+                        <div class="mock-header">
+                            <h1 style="font-size: 2em; margin-bottom: 10px;">Dashboard</h1>
+                            <div class="mock-stats">
+                                <div class="mock-stat">
+                                    <div class="stat-number">3</div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Monitored Users</div>
+                                </div>
+                                <div class="mock-stat">
+                                    <div class="stat-number">5</div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Total Streams</div>
+                                </div>
+                                <div class="mock-stat" style="background: rgba(255, 71, 87, 0.3);">
+                                    <div class="stat-number">
+                                        <span class="recording-indicator"></span>2
+                                    </div>
+                                    <div style="margin-top: 5px; opacity: 0.9;">Currently Recording</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 style="color: #333; margin: 30px 0 20px 0;">Monitored Users</h2>
+                        <div class="mock-user-chip">
+                            <span style="font-weight: 600;">@charlidamelio</span>
+                            <span class="recording-indicator"></span>
+                            <span style="color: #ff4757; font-weight: bold;">RECORDING</span>
+                        </div>
+                        <div class="mock-user-chip">
+                            <span style="font-weight: 600;">@addisonre</span>
+                            <span class="recording-indicator"></span>
+                            <span style="color: #ff4757; font-weight: bold;">RECORDING</span>
+                        </div>
+                        <div class="mock-user-chip">
+                            <span style="font-weight: 600;">@bellapoarch</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 What's Happening:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Two users are currently live and being recorded</li>
+                    <li>Statistics update in real-time</li>
+                    <li>Recording indicators show active streams</li>
+                    <li>Everything happens automatically</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 7: Viewing Recordings -->
+        <div class="slide" data-step="7">
+            <h2>🎬 Step 6: Viewing Recorded Streams</h2>
+            <p>After streams finish, they appear in the gallery below. You can watch them directly in the browser!</p>
+
+            <div class="demo-interface">
+                <div class="interface-window">
+                    <div class="window-header">
+                        <div class="window-dot red"></div>
+                        <div class="window-dot yellow"></div>
+                        <div class="window-dot green"></div>
+                    </div>
+                    <div class="window-content">
+                        <h2 style="color: #333; margin-bottom: 20px;">Recorded Streams</h2>
+                        <div class="mock-stream-grid">
+                            <div class="mock-stream-card">
+                                <div class="mock-thumbnail">🎥</div>
+                                <div class="mock-stream-info">
+                                    <div style="color: #667eea; font-weight: 600; margin-bottom: 10px;">@charlidamelio</div>
+                                    <div style="font-size: 1.1em; font-weight: 600; margin-bottom: 10px;">Dance Challenge Stream</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">Started: 2025-01-26 14:30</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Duration: 1h 23m 45s</div>
+                                    <span style="background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; font-weight: 600;">COMPLETED</span>
+                                </div>
+                            </div>
+
+                            <div class="mock-stream-card">
+                                <div class="mock-thumbnail">🎥</div>
+                                <div class="mock-stream-info">
+                                    <div style="color: #667eea; font-weight: 600; margin-bottom: 10px;">@addisonre</div>
+                                    <div style="font-size: 1.1em; font-weight: 600; margin-bottom: 10px;">Q&A with Fans</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">Started: 2025-01-26 16:15</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Duration: 45m 12s</div>
+                                    <span style="background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; font-weight: 600;">COMPLETED</span>
+                                </div>
+                            </div>
+
+                            <div class="mock-stream-card">
+                                <div class="mock-thumbnail">🎥</div>
+                                <div class="mock-stream-info">
+                                    <div style="color: #667eea; font-weight: 600; margin-bottom: 10px;">@bellapoarch</div>
+                                    <div style="font-size: 1.1em; font-weight: 600; margin-bottom: 10px;">Gaming Stream</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">Started: 2025-01-26 18:00</div>
+                                    <div style="color: #666; font-size: 0.9em; margin-bottom: 10px;">Duration: 2h 15m 30s</div>
+                                    <span style="background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; font-weight: 600;">COMPLETED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✨ Features:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Beautiful gallery view with thumbnails</li>
+                    <li>All metadata (username, title, duration)</li>
+                    <li>Click to play videos inline</li>
+                    <li>Videos also saved locally in videos/ folder</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 8: Telegram Integration -->
+        <div class="slide" data-step="8">
+            <h2>📱 Step 7: Telegram Integration (Optional)</h2>
+            <p>The best part! All recordings can automatically upload to your Telegram channel for cloud storage and easy sharing.</p>
+
+            <h3 style="margin-top: 30px; color: #667eea;">How to Enable:</h3>
+            <div class="code-block" style="margin-bottom: 30px;">
+                # 1. Create bot with @BotFather<br>
+                # 2. Create a channel<br>
+                # 3. Add bot as admin<br>
+                # 4. Configure .env file:<br>
+                <br>
+                TELEGRAM_BOT_TOKEN=your_bot_token<br>
+                TELEGRAM_CHANNEL_ID=@your_channel
+            </div>
+
+            <h3 style="margin-top: 30px; color: #667eea;">What Gets Posted:</h3>
+            <div class="telegram-preview">
+                <h3 style="margin-bottom: 15px;">📺 Your Channel Name</h3>
+                <div class="telegram-message">
+                    <div style="font-weight: bold; margin-bottom: 10px;">🔴 TikTok Live Recording</div>
+                    <div style="color: #666; line-height: 1.8;">
+                        👤 <strong>User:</strong> @charlidamelio<br>
+                        📺 <strong>Title:</strong> Dance Challenge Stream<br>
+                        ⏱️ <strong>Duration:</strong> 1h 23m 45s<br>
+                        📅 <strong>Recorded:</strong> 2025-01-26 14:30:22
+                    </div>
+                    <div style="margin-top: 15px; padding: 20px; background: #f0f0f0; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🎥</div>
+                        <div style="color: #666;">dance_challenge.mp4</div>
+                        <div style="color: #999; font-size: 0.9em; margin-top: 5px;">523 MB • 1:23:45</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ Benefits:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Free cloud storage via Telegram</li>
+                    <li>Easy sharing - just share channel link</li>
+                    <li>Access from any device</li>
+                    <li>Automatic backup</li>
+                    <li>No hosting costs</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 9: File Structure -->
+        <div class="slide" data-step="9">
+            <h2>📁 Step 8: Where Everything is Stored</h2>
+            <p>All your recordings and data are organized in easy-to-find locations:</p>
+
+            <div style="background: #2d2d2d; color: #00ff00; padding: 30px; border-radius: 10px; margin: 30px 0; font-family: monospace;">
+                tiktok-stream-recorder/<br>
+                ├── <span style="color: #67c5ff;">videos/</span> 📹 <span style="color: #999;">← All recorded videos here!</span><br>
+                │   ├── charlidamelio_20250126_143000.mp4<br>
+                │   ├── charlidamelio_20250126_143000.jpg  (thumbnail)<br>
+                │   ├── addisonre_20250126_161500.mp4<br>
+                │   └── bellapoarch_20250126_180000.mp4<br>
+                │<br>
+                ├── <span style="color: #67c5ff;">data/</span> 💾 <span style="color: #999;">← Database with metadata</span><br>
+                │   └── streams.db<br>
+                │<br>
+                ├── <span style="color: #67c5ff;">logs/</span> 📝 <span style="color: #999;">← Service logs</span><br>
+                │   ├── backend.log<br>
+                │   ├── monitor.log<br>
+                │   └── frontend.log<br>
+                │<br>
+                ├── <span style="color: #67c5ff;">backend/</span> <span style="color: #999;">← Server code</span><br>
+                └── <span style="color: #67c5ff;">frontend/</span> <span style="color: #999;">← Web interface</span>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 Pro Tips:</strong>
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>Videos are named: username_timestamp.mp4</li>
+                    <li>Each video has a matching .jpg thumbnail</li>
+                    <li>Database stores all metadata (duration, title, status)</li>
+                    <li>Check logs/ if something goes wrong</li>
+                    <li>Backup videos/ folder periodically</li>
+                </ul>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="nextSlide()">Next →</button>
+            </div>
+        </div>
+
+        <!-- Slide 10: Summary & Next Steps -->
+        <div class="slide" data-step="10">
+            <h2>🎉 You're All Set!</h2>
+            <p style="font-size: 1.3em; margin-bottom: 30px;">Now you know exactly how the TikTok Stream Recorder works!</p>
+
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin: 30px 0;">
+                <h3 style="font-size: 1.8em; margin-bottom: 20px;">Quick Recap:</h3>
+                <div style="font-size: 1.1em; line-height: 2;">
+                    ✅ Start the system (start.bat or ./start.sh)<br>
+                    ✅ Open http://localhost:8080<br>
+                    ✅ Add TikTok usernames to monitor<br>
+                    ✅ System automatically detects & records<br>
+                    ✅ View all recordings in the gallery<br>
+                    ✅ Optional: Upload to Telegram channel
+                </div>
+            </div>
+
+            <h3 style="color: #667eea; margin-top: 40px;">📚 Resources:</h3>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="feature-icon">🚀</div>
+                    <h4>QUICKSTART.md</h4>
+                    <p>Get started in 3 steps</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <h4>TELEGRAM_SETUP.md</h4>
+                    <p>5-minute Telegram setup guide</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔧</div>
+                    <h4>TESTING.md</h4>
+                    <p>Testing & troubleshooting</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📖</div>
+                    <h4>README.md</h4>
+                    <p>Complete documentation</p>
+                </div>
+            </div>
+
+            <h3 style="color: #667eea; margin-top: 40px;">⚡ Start Now:</h3>
+            <div class="code-block">
+                # Navigate to project<br>
+                cd tiktok-stream-recorder<br>
+                <br>
+                # Start (choose one):<br>
+                ./start.sh          # Linux/Mac<br>
+                start.bat           # Windows<br>
+                docker-compose up -d    # Docker<br>
+                <br>
+                # Open in browser:<br>
+                http://localhost:8080
+            </div>
+
+            <div class="success-box" style="font-size: 1.2em; text-align: center;">
+                <strong>🎬 Ready to start recording TikTok streams?</strong><br>
+                <span style="font-size: 0.9em; opacity: 0.8;">Just follow the steps above and you're good to go!</span>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn prev" onclick="prevSlide()">← Back</button>
+                <button class="control-btn next" onclick="location.reload()">🔄 Restart Demo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 10;
+
+        function updateProgress() {
+            const progress = (currentSlide / totalSlides) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('currentStep').textContent = currentSlide;
+            document.getElementById('totalSteps').textContent = totalSlides;
+        }
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[n - 1].classList.add('active');
+            currentSlide = n;
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function addMockUser() {
+            const container = document.getElementById('mockUserList');
+            const users = ['charlidamelio', 'addisonre', 'bellapoarch'];
+            const currentCount = container.children.length;
+            
+            if (currentCount < users.length) {
+                const chip = document.createElement('div');
+                chip.className = 'mock-user-chip';
+                chip.innerHTML = `
+                    <span style="font-weight: 600;">@${users[currentCount]}</span>
+                    <button style="background: #ff4757; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px;">×</button>
+                `;
+                container.appendChild(chip);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
